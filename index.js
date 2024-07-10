@@ -52,15 +52,20 @@ inputElement.addEventListener("change", handleFilesChanged);
  * @param {Array<File>} files 
  */
 async function readFiles(files) {
-    const fileData = {};
     const fileReadPromises = files.map((file) => {
         const characterName = getCharacterNameFromFileName(file.name);
         return file.text()
-            .then((data) => { fileData[characterName] = data; })
+            .then((data) => ({ characterName, data }))
             .catch((reason) => { logger.error(`Failed to read file '${file.name}' because ${reason}`); });
     });
 
-    return Promise.all(fileReadPromises).then(() => fileData);
+    return Promise.all(fileReadPromises).then((results) => {
+        const fileData = {};
+        results.forEach((result) => {
+            fileData[result.characterName] = result.data;
+        });
+        return fileData;
+    });
 }
 
 /**
