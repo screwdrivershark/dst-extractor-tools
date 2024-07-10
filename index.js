@@ -1,7 +1,48 @@
 "use strict";
 
-const fileNameRegex = /speech_(.*)\.lua/;
-console.log("start");
+// Wes doesn't talk
+const NUMBER_OF_TALKING_DST_CHARACTERS = 17
+
+class Logger {
+    /**
+     * @param {HTMLElement} element 
+     */
+    constructor(element) {
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('Logger needs a valid DOM element.');
+        }
+        this.element = element;
+    }
+
+    /**
+     * @param {String} type 
+     * @param {String} message 
+     */
+    logMessage(type, message) {
+        this.element.textContent += `[${type.toUpperCase()}] ${message}\n`;
+    }
+
+    clear() {
+        this.element.innerHTML = '';
+    }
+
+    info(message) {
+        this.logMessage("info", message);
+    }
+
+    warn(message) {
+        this.logMessage("warn", message);
+    }
+
+    error(message) {
+        this.logMessage("error", message);
+    }
+}
+
+const logElement = document.querySelector("#log");
+const logger = new Logger(logElement);
+
+console.debug("start");
 const inputElement = document.querySelector("#file-input");
 // if I handle the case where files are already selected, I won't have to clear the input
 inputElement.value = null;
@@ -10,14 +51,16 @@ inputElement.addEventListener("change", handleFilesChanged);
 /**
  * @param {Array<File>} files 
  */
-function readFiles(files) {
+async function readFiles(files) {
     const fileData = {};
-
-    files.forEach((file) => {
+    const fileReadPromises = files.map((file) => {
         const characterName = getCharacterNameFromFileName(file.name);
-        fileData[characterName] = characterName;
+        return file.text()
+            .then((data) => { fileData[characterName] = data; })
+            .catch((reason) => { logger.error(`Failed to read file '${file.name}' because ${reason}`); });
     });
-    console.log(fileData);
+
+    return Promise.all(fileReadPromises).then(() => fileData);
 }
 
 /**
@@ -25,26 +68,28 @@ function readFiles(files) {
  * @returns {String} the character name as used in the game files
  */
 function getCharacterNameFromFileName(fileName) {
-    const match = fileNameRegex.exec(fileName);
-    if (match) {
-        return match[1];
-    } else {
-        throw Error(`Couldn't find a character name in the file name '${fileName}'`);
-    }
+    const characterName = fileName.substring(7, fileName.length - 4);
+    return characterName;
 }
 
 /**
  * @param {Event} e
  */
 async function handleFilesChanged(e) {
+    logger.clear();
     const files = Array.from(this.files);
     if (files.length === 0) {
-        console.debug("Zero files given, returning early...");
+        console.debug("Zero files given, stopping early...");
         return;
     }
 
-    console.log(files);
-    const fileData = readFiles(files);
+    const fileData = await readFiles(files);
+    const numberOfReadFiles = Object.keys(fileData).length;
+    logger.info(`Read ${numberOfReadFiles} files.`)
+    if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {
+        logger.warn(`Did you select all files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
+    }
+    console.log(fileData);
 }
 
 /**
@@ -57,7 +102,6 @@ function showError(error) {
 
 
 // the key is the name in the game files
-// Wes doesn't talk
 const characterNamesMap = {
     walter: {
         quotesTemplateName: "walter",
