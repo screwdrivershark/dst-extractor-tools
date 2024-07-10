@@ -6,12 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DST Quotes Extractor</title>
     <script src="./index.js" defer></script>
+    <style>
+        body {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 30px;
+            background-color: #1b1b1b;
+            color: white;
+            font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+        }
+
+        body>div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        div>* {
+            margin-bottom: 10px;
+        }
+
+        pre {
+            background-color: #343434;
+            min-height: 30px;
+        }
+    </style>
 </head>
 
 <body>
-    <div style="display: flex; justify-content: center; margin-top: 30px;">
+    <div>
         <input id="file-input" type="file" multiple />
-        <span id="error" style="color:orangered;"></span>
+        <!-- <span id="error" style="color:orangered;"></span> -->
+        <pre id="log"></pre>
     </div>
 
 </body>
