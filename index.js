@@ -2,6 +2,7 @@
 
 // Wes doesn't talk
 const NUMBER_OF_TALKING_DST_CHARACTERS = 17
+let fileData;
 
 class Logger {
     /**
@@ -43,10 +44,18 @@ const logElement = document.querySelector("#log");
 const logger = new Logger(logElement);
 
 console.debug("start");
-const inputElement = document.querySelector("#file-input");
+const fileElement = document.querySelector("#file-input");
 // if I handle the case where files are already selected, I won't have to clear the input
-inputElement.value = null;
-inputElement.addEventListener("change", handleFilesChanged);
+fileElement.value = null;
+fileElement.addEventListener("change", handleFilesChanged);
+
+const searchButtonElement = document.querySelector("#search");
+searchButtonElement.addEventListener("click", handleSearch)
+
+function handleSearch() {
+    const c = fengari.load(fileData.wolfgang)();
+    console.log(c.get("ACTIONFAIL"));
+}
 
 /**
  * @param {Array<File>} files 
@@ -88,7 +97,7 @@ async function handleFilesChanged(e) {
         return;
     }
 
-    const fileData = await readFiles(files);
+    fileData = await readFiles(files);
     const numberOfReadFiles = Object.keys(fileData).length;
     logger.info(`Read ${numberOfReadFiles} files.`)
     if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {

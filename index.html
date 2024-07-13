@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DST Quotes Extractor</title>
     <link rel="icon" href="favicon.svg" sizes="any" type="image/svg+xml">
+    <script src="fengari-web.js" type="text/javascript"></script>
     <script src="./index.js" type="module" defer></script>
     <style>
         body {
@@ -27,6 +28,11 @@
             margin-bottom: 10px;
         }
 
+        .controls {
+            display: flex;
+            justify-content: space-around;
+        }
+
         pre {
             background-color: #343434;
             min-height: 30px;
@@ -36,7 +42,14 @@
 
 <body>
     <div>
-        <input id="file-input" type="file" multiple />
+        <div class="controls">
+            <input id="file-input" type="file" multiple />
+            <div>
+                <label for="quote-id-input">Enter quote id:</label>
+                <input id="quote-id-input" type="text" />
+                <button id="search" type="button">Search</button>
+            </div>
+        </div>
         <!-- <span id="error" style="color:orangered;"></span> -->
         <pre id="log"></pre>
     </div>
