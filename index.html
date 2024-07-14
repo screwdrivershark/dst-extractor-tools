@@ -44,11 +44,11 @@
     <div>
         <div class="controls">
             <input id="file-input" type="file" multiple />
-            <div>
-                <label for="quote-id-input">Enter quote id:</label>
-                <input id="quote-id-input" type="text" />
-                <button id="search" type="button">Search</button>
-            </div>
+            <form id="search">
+                <label for="quote-id-input">Enter quote identifier:</label>
+                <input id="quote-id-input" type="text" name="quote-id" />
+                <button type="submit">Search</button>
+            </form>
         </div>
         <!-- <span id="error" style="color:orangered;"></span> -->
         <pre id="log"></pre>

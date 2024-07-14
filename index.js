@@ -6,7 +6,7 @@ let fileData;
 
 class Logger {
     /**
-     * @param {HTMLElement} element 
+     * @param {HTMLElement} element
      */
     constructor(element) {
         if (!(element instanceof HTMLElement)) {
@@ -16,8 +16,8 @@ class Logger {
     }
 
     /**
-     * @param {String} type 
-     * @param {String} message 
+     * @param {String} type
+     * @param {String} message
      */
     logMessage(type, message) {
         this.element.textContent += `[${type.toUpperCase()}] ${message}\n`;
@@ -49,32 +49,59 @@ const fileElement = document.querySelector("#file-input");
 fileElement.value = null;
 fileElement.addEventListener("change", handleFilesChanged);
 
-const searchButtonElement = document.querySelector("#search");
-searchButtonElement.addEventListener("click", handleSearch)
+const searchFormElement = document.querySelector("#search");
+searchFormElement.addEventListener("submit", handleSearch)
 
-function handleSearch() {
+/**
+ * @param {SubmitEvent} e
+ */
+function handleSearch(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const searchText = formData.get("quote-id");
+    const quoteIds = getQuoteIds(searchText);
+    if (quoteIds.length === 0) {
+        logger.error("No valid quote identifier was entered!");
+        return;
+    }
+
+
     const c = fengari.load(fileData.wolfgang)();
     console.log(c.get("ACTIONFAIL"));
 }
 
 /**
- * @param {Array<File>} files 
+ * return the strings that identify a "path" to the quotes through the tables in the speech filese
+ * @param {String} input
+ * @returns {Array.<String>}
+ */
+function getQuoteIds(input) {
+    const idSeparator = ".";
+    const ids = input.split(idSeparator).map((id) => id.trim());
+    return ids.filter((id) => id !== "").map((id) => id.toUpperCase());
+}
+
+
+/**
+ * @param {Object} object
+ * @returns {Boolean}
+ */
+function isEmpty(object) {
+    return Object.keys(object).length === 0;
+}
+
+/**
+ * @param {Array<File>} files
  */
 async function readFiles(files) {
     const fileReadPromises = files.map((file) => {
-        const characterName = getCharacterNameFromFileName(file.name);
+        const name = getCharacterNameFromFileName(file.name);
         return file.text()
-            .then((data) => ({ characterName, data }))
+            .then((data) => ({ name: name, data: data }))
             .catch((reason) => { logger.error(`Failed to read file '${file.name}' because ${reason}`); });
     });
 
-    return Promise.all(fileReadPromises).then((results) => {
-        const fileData = {};
-        results.forEach((result) => {
-            fileData[result.characterName] = result.data;
-        });
-        return fileData;
-    });
+    return await Promise.all(fileReadPromises);
 }
 
 /**
@@ -99,15 +126,15 @@ async function handleFilesChanged(e) {
 
     fileData = await readFiles(files);
     const numberOfReadFiles = Object.keys(fileData).length;
-    logger.info(`Read ${numberOfReadFiles} files.`)
+    logger.info(`Read ${numberOfReadFiles} file(s).`)
     if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {
-        logger.warn(`Did you select all files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
+        logger.warn(`Did you select all speech files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
     }
     console.log(fileData);
 }
 
 /**
- * @param {String} error 
+ * @param {String} error
  */
 function showError(error) {
     const errorElement = document.querySelector("#error");
@@ -188,3 +215,5 @@ const characterNamesMap = {
 };
 
 // TODO: convert wigfrid speech Ö?
+// TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
+// TODO: clear logs when necessary, e.g. when entering new input?
