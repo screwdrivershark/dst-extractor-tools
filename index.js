@@ -1,8 +1,11 @@
 "use strict";
 
 // Wes doesn't talk
-const NUMBER_OF_TALKING_DST_CHARACTERS = 17
-let fileData;
+const NUMBER_OF_TALKING_DST_CHARACTERS = 17;
+/**
+ * @type {Array.<Object>}
+ */
+let fileData = {};
 
 class Logger {
     /**
@@ -10,7 +13,7 @@ class Logger {
      */
     constructor(element) {
         if (!(element instanceof HTMLElement)) {
-            throw new Error('Logger needs a valid DOM element.');
+            throw new Error("Logger needs a valid DOM element.");
         }
         this.element = element;
     }
@@ -24,7 +27,11 @@ class Logger {
     }
 
     clear() {
-        this.element.innerHTML = '';
+        this.element.innerHTML = "";
+    }
+
+    debug(message) {
+        this.logMessage("debug", message);
     }
 
     info(message) {
@@ -43,20 +50,25 @@ class Logger {
 const logElement = document.querySelector("#log");
 const logger = new Logger(logElement);
 
-console.debug("start");
 const fileElement = document.querySelector("#file-input");
-// if I handle the case where files are already selected, I won't have to clear the input
+// because firefox doesn't clear input
+// and clearing it makes sure that no old files are still selected
 fileElement.value = null;
 fileElement.addEventListener("change", handleFilesChanged);
 
 const searchFormElement = document.querySelector("#search");
-searchFormElement.addEventListener("submit", handleSearch)
+searchFormElement.addEventListener("submit", handleSearch);
 
 /**
  * @param {SubmitEvent} e
  */
 function handleSearch(e) {
     e.preventDefault();
+    if (isEmpty(fileData)) {
+        logger.error("No speech files were selected!");
+        return;
+    }
+
     const formData = new FormData(e.target);
     const searchText = formData.get("quote-id");
     const quoteIds = getQuoteIds(searchText);
@@ -65,9 +77,58 @@ function handleSearch(e) {
         return;
     }
 
+    const quoteData = getQuotes(quoteIds);
+    createTemplate(quoteData);
+}
 
-    const c = fengari.load(fileData.wolfgang)();
-    console.log(c.get("ACTIONFAIL"));
+/**
+ * @param {Array.<Object>} quoteData
+ */
+function createTemplate(quoteData) {
+    logger.info(`Creating template for ${quoteData.length} character(s).`);
+    const charactersTemplate = quoteData.reduce((acc, quoteDatum) => acc + `\n|${characterNamesMap[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
+    const template = `{{Quotes${charactersTemplate}\n}}`;
+
+    const templateElement = document.querySelector("#template");
+    templateElement.value = template;
+}
+
+/**
+ * @param {Array.<String>} quoteIds
+ * @returns {Array.<Object>}
+ */
+function getQuotes(quoteIds) {
+    const quotes = [];
+    fileData.forEach((fileDatum) => {
+        try {
+            const quote = searchQuote(fileDatum.data, quoteIds);
+            quotes.push({
+                name: fileDatum.name,
+                quote: quote,
+            });
+        } catch (error) {
+            logger.debug(error.message);
+            logger.warn(`Failed to find the quote for ${characterNamesMap[fileDatum.name].displayName}!`);
+        }
+    });
+    return quotes;
+}
+
+/**
+ * search through the speech file data as a lua object and try to find the quote corresponding to quoteIds
+ * @param {String} data
+ * @param {Array.<String>} quoteIds
+ */
+function searchQuote(data, quoteIds) {
+    let currentData = fengari.load(data)(); // the () at the end is important!
+    quoteIds.forEach((id) => {
+        const nextData = currentData.get(id);
+        if (nextData === undefined) {
+            throw new Error(`No data was found when trying the ID ${id}`);
+        }
+        currentData = nextData;
+    });
+    return currentData;
 }
 
 /**
@@ -118,7 +179,7 @@ function getCharacterNameFromFileName(fileName) {
  */
 async function handleFilesChanged(e) {
     logger.clear();
-    const files = Array.from(this.files);
+    const files = Array.from(e.target.files);
     if (files.length === 0) {
         console.debug("Zero files given, stopping early...");
         return;
@@ -126,21 +187,11 @@ async function handleFilesChanged(e) {
 
     fileData = await readFiles(files);
     const numberOfReadFiles = Object.keys(fileData).length;
-    logger.info(`Read ${numberOfReadFiles} file(s).`)
+    logger.info(`Read ${numberOfReadFiles} file(s).`);
     if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {
         logger.warn(`Did you select all speech files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
     }
-    console.log(fileData);
 }
-
-/**
- * @param {String} error
- */
-function showError(error) {
-    const errorElement = document.querySelector("#error");
-    errorElement.textContent = error;
-}
-
 
 // the key is the name in the game files
 const characterNamesMap = {
@@ -214,6 +265,9 @@ const characterNamesMap = {
     },
 };
 
+// TODO: increase quote id input width
 // TODO: convert wigfrid speech Ö?
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
 // TODO: clear logs when necessary, e.g. when entering new input?
+// TODO: make a button at logs "show debug info"
+// TODO: copy button

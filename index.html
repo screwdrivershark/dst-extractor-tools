@@ -10,13 +10,17 @@
     <script src="./index.js" type="module" defer></script>
     <style>
         body {
-            max-width: 1200px;
+            max-width: 1000px;
             margin-left: auto;
             margin-right: auto;
             margin-top: 30px;
-            background-color: #1b1b1b;
             color: white;
             font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+        }
+
+        .default-bg {
+            background-color: #1b1b1b;
+            color: white;
         }
 
         body>div {
@@ -25,7 +29,7 @@
         }
 
         div>* {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .controls {
@@ -35,12 +39,16 @@
 
         pre {
             background-color: #343434;
-            min-height: 1em;
+            min-height: 2em;
+        }
+
+        #template {
+            min-height: 25em;
         }
     </style>
 </head>
 
-<body>
+<body class="default-bg">
     <div>
         <div class="controls">
             <input id="file-input" type="file" multiple />
@@ -52,6 +60,7 @@
         </div>
         <!-- <span id="error" style="color:orangered;"></span> -->
         <pre id="log"></pre>
+        <textarea id="template" class="default-bg"></textarea>
     </div>
 
 </body>
