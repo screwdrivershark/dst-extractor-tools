@@ -78,7 +78,57 @@ function handleSearch(e) {
     }
 
     const quotesData = getQuotes(quoteIds);
-    createTemplate(quotesData);
+    const postProcessed = postProcess(quotesData);
+    createTemplate(postProcessed);
+}
+
+/**
+ * @param {Array.<Object>} quotesData
+ * @returns {Array.<Object>}
+ */
+function postProcess(quotesData) {
+    const wigfridQuoteDatum = findQuoteDatumByName(quotesData, "wathgrithr");
+    if (wigfridQuoteDatum !== undefined) {
+        wigfridQuoteDatum.quote = postProcessWigfrid(wigfridQuoteDatum.quote);
+    }
+    return quotesData;
+}
+
+/**
+ * @param {String} quote
+ * @returns {String}
+ */
+function postProcessWigfrid(quote) {
+    // "Umlautify" from the game code
+    const luaFunction = `
+        return function (string)
+            local string = string.value
+            local ret = ""
+            local last = false
+            for i = 1, #string do
+                local c = string:sub(i,i)
+                if not last and (c == "o" or c == "O") then
+                    ret = ret .. ((c == "o" and "ö") or (c == "O" and "Ö") or c)
+                    last = true
+                else
+                    ret = ret .. c
+                    last = false
+                end
+            end
+            return ret
+        end
+    `;
+    const processed = fengari.load(luaFunction)().invoke({ value: quote }, {}); // no clue what exactly the arguments for invoke() must be
+    return processed[0];
+}
+
+/**
+ * @param {Array.<Object>} quotesData
+ * @param {String} name
+ * @returns {Object|undefined}
+ */
+function findQuoteDatumByName(quotesData, name) {
+    return quotesData.find((quoteDatum) => quoteDatum.name === name);
 }
 
 /**
@@ -87,7 +137,7 @@ function handleSearch(e) {
  * @returns {String}
  */
 function chooseCharacter(quotesData) {
-    let chosenDatum = quotesData.find((quoteDatum) => quoteDatum.name === "wilson");
+    let chosenDatum = findQuoteDatumByName(quotesData, "wilson");
     if (chosenDatum === undefined) {
         chosenDatum = quotesData[0];
     }
