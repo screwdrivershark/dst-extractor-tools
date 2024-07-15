@@ -77,30 +77,30 @@ function handleSearch(e) {
         return;
     }
 
-    const quoteData = getQuotes(quoteIds);
-    createTemplate(quoteData);
+    const quotesData = getQuotes(quoteIds);
+    createTemplate(quotesData);
 }
 
 /**
  * return wilson if wilson is included, else the first character in the array
- * @param {Array.<Object>} quoteData
+ * @param {Array.<Object>} quotesData
  * @returns {String}
  */
-function chooseCharacter(quoteData) {
-    let chosenDatum = quoteData.find((quoteDatum) => quoteDatum.name === "wilson");
+function chooseCharacter(quotesData) {
+    let chosenDatum = quotesData.find((quoteDatum) => quoteDatum.name === "wilson");
     if (chosenDatum === undefined) {
-        chosenDatum = quoteData[0];
+        chosenDatum = quotesData[0];
     }
     return characterNamesMap[chosenDatum.name].quotesTemplateName;
 }
 
 /**
- * @param {Array.<Object>} quoteData
+ * @param {Array.<Object>} quotesData
  */
-function createTemplate(quoteData) {
-    logger.info(`Creating template for ${quoteData.length} character(s).`);
-    const charactersTemplate = quoteData.reduce((acc, quoteDatum) => acc + `\n|${characterNamesMap[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
-    const chosenCharacter = chooseCharacter(quoteData);
+function createTemplate(quotesData) {
+    logger.info(`Creating template for ${quotesData.length} character(s).`);
+    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNamesMap[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
+    const chosenCharacter = chooseCharacter(quotesData);
     const template = `{{Quotes${charactersTemplate}\n|choose=${chosenCharacter}\n}}`;
 
     const templateElement = document.querySelector("#template");
