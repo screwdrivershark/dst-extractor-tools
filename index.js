@@ -62,16 +62,20 @@ const searchFormElement = document.querySelector("#search");
 searchFormElement.addEventListener("submit", handleSearch);
 
 const copyElement = document.querySelector("#copy");
+const templateElement = document.querySelector("#template");
 copyElement.addEventListener("click", () => {
-    const text = document.querySelector("#template").value;
+    const text = templateElement.value;
     navigator.clipboard.writeText(text);
 });
+
 
 /**
  * @param {SubmitEvent} e
  */
 function handleSearch(e) {
     e.preventDefault();
+    logger.clear();
+    templateElement.value = "";
     if (isEmpty(fileData)) {
         logger.error("No speech files were selected!");
         return;
@@ -179,7 +183,7 @@ function getQuotes(quoteIds) {
                 quote: quote,
             });
         } catch (error) {
-            logger.debug(error.message);
+            logger.debug("Error trying to get quote data (from Lua): " + error.message);
             logger.warn(`Failed to find the quote for ${characterNamesMap[fileDatum.name].displayName}!`);
         }
     });
@@ -193,10 +197,14 @@ function getQuotes(quoteIds) {
  */
 function searchQuote(data, quoteIds) {
     let currentData = fengari.load(data)(); // the () at the end is important!
-    quoteIds.forEach((id) => {
+    quoteIds.forEach((id, index) => {
+        const idsTillNow = quoteIds.slice(0, index).join(".");
+        if (typeof currentData === "string") {
+            throw new Error(`A quote was found already but then an attempt to get the quote's child (impossible) failed after ${idsTillNow}`);
+        }
         const nextData = currentData.get(id);
         if (nextData === undefined) {
-            throw new Error(`No data was found when trying the ID ${id}`);
+            throw new Error(`No data was found when trying the ID ${id} after ${idsTillNow}`);
         }
         currentData = nextData;
     });
@@ -251,9 +259,9 @@ function getCharacterNameFromFileName(fileName) {
  */
 async function handleFilesChanged(e) {
     logger.clear();
+    templateElement.value = "";
     const files = Array.from(e.target.files);
     if (files.length === 0) {
-        console.debug("Zero files given, stopping early...");
         return;
     }
 
@@ -338,5 +346,5 @@ const characterNamesMap = {
 };
 
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
-// TODO: clear logs when necessary, e.g. when entering new input?
 // TODO: make a button at logs "show debug info"
+
