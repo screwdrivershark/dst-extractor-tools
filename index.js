@@ -59,6 +59,12 @@ fileElement.addEventListener("change", handleFilesChanged);
 const searchFormElement = document.querySelector("#search");
 searchFormElement.addEventListener("submit", handleSearch);
 
+const copyElement = document.querySelector("#copy");
+copyElement.addEventListener("click", () => {
+    const text = document.querySelector("#template").value;
+    navigator.clipboard.writeText(text);
+});
+
 /**
  * @param {SubmitEvent} e
  */
@@ -333,4 +339,3 @@ const characterNamesMap = {
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
 // TODO: clear logs when necessary, e.g. when entering new input?
 // TODO: make a button at logs "show debug info"
-// TODO: copy button
