@@ -160,6 +160,10 @@ function chooseCharacter(quotesData) {
  * @param {Array.<Object>} quotesData
  */
 function createTemplate(quotesData) {
+    if (quotesData.length === 0) {
+        logger.info("Not creating template because no quotes were found!");
+        return;
+    }
     logger.info(`Creating template for ${quotesData.length} character(s).`);
     const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNamesMap[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
