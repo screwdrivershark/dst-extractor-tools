@@ -1,4 +1,5 @@
 "use strict";
+/* global fengari */
 
 // Wes doesn't talk
 const NUMBER_OF_TALKING_DST_CHARACTERS = 17;
