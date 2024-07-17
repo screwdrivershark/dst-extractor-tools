@@ -8,6 +8,7 @@ const NUMBER_OF_TALKING_DST_CHARACTERS = 17;
  */
 
 let fileData = {};
+let characterNames = {};
 
 class Logger {
     /**
@@ -153,7 +154,7 @@ function chooseCharacter(quotesData) {
     if (chosenDatum === undefined) {
         chosenDatum = quotesData[0];
     }
-    return characterNamesMap[chosenDatum.name].quotesTemplateName;
+    return characterNames[chosenDatum.name].quotesTemplateName;
 }
 
 /**
@@ -165,7 +166,7 @@ function createTemplate(quotesData) {
         return;
     }
     logger.info(`Creating template for ${quotesData.length} character(s).`);
-    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNamesMap[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
+    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
     const template = `{{Quotes${charactersTemplate}\n|choose=${chosenCharacter}\n}}`;
 
@@ -188,7 +189,7 @@ function getQuotes(quoteIds) {
             });
         } catch (error) {
             logger.debug("Error trying to get quote data (from Lua): " + error.message);
-            logger.warn(`Failed to find the quote for ${characterNamesMap[fileDatum.name].displayName}!`);
+            logger.warn(`Failed to find the quote for ${characterNames[fileDatum.name].displayName}!`);
         }
     });
     return quotes;
@@ -275,10 +276,34 @@ async function handleFilesChanged(e) {
     if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {
         logger.warn(`Did you select all speech files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
     }
+
+    const unknownCharacterNames = handleUnknownCharacters(fileData);
+    characterNames = structuredClone(knownCharacterNames);
+    Object.assign(characterNames, unknownCharacterNames);
+}
+
+/**
+ * @param {Array.<Object>} fileData
+ * @returns {Object} name data for unknown characters, where the quotes template name and
+ *  the display name are both just the name extracted from the "speech_name.lua"
+ */
+function handleUnknownCharacters(fileData) {
+    const unknownCharacterNames = {};
+    fileData.forEach((fileDatum) => {
+        const name = fileDatum.name;
+        if (!Object.prototype.hasOwnProperty.call(knownCharacterNames, name)) {
+            logger.info(`Found unknown character ${name}.`);
+            unknownCharacterNames[name] = {
+                quotesTemplateName: name,
+                displayName: name,
+            };
+        }
+    });
+    return unknownCharacterNames;
 }
 
 // the key is the name in the game files
-const characterNamesMap = {
+const knownCharacterNames = {
     walter: {
         quotesTemplateName: "walter",
         displayName: "Walter",
@@ -350,7 +375,5 @@ const characterNamesMap = {
 };
 
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
-// TODO: raise error when a quote identifier is too short and a whole table would be returned
-
+// TODO: raise error when a quote identifier is too short and a whole table would be returned?
 // TODO: make a button at logs "show debug info"
-
