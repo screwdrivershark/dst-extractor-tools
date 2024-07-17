@@ -350,5 +350,7 @@ const characterNamesMap = {
 };
 
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
+// TODO: raise error when a quote identifier is too short and a whole table would be returned
+
 // TODO: make a button at logs "show debug info"
 

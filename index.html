@@ -16,6 +16,7 @@
             margin-top: 30px;
             color: white;
             font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+            line-height: 1.25em;
         }
 
         .default-bg {
@@ -63,6 +64,26 @@
             right: 15px;
             top: 15px;
         }
+
+        .how-to code {
+            background-color: #343434;
+            padding: 0 2px;
+        }
+
+        figure {
+            display: inline-block;
+            margin: 20px 20px;
+        }
+
+        figure figcaption {
+            text-align: center;
+            font-size: .85rem;
+            font-style: italic;
+        }
+
+        pre {
+            background-color: #343434;
+        }
     </style>
 </head>
 
@@ -79,14 +100,98 @@
         <div id="log"></div>
         <div class="template-container">
             <textarea id="template" class="default-bg"></textarea>
-            <button id="copy" title="Copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                    fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+            <button id="copy" title="Copy">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-clipboard" viewBox="0 0 16 16">
                     <path
                         d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z" />
                     <path
                         d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z" />
-                </svg></button>
+                </svg>
+            </button>
         </div>
+        <section class="how-to">
+            <h2>How to use</h2>
+            <ol>
+                <li>
+                    <p>
+                        Create a folder for easy access to the .lua speech files.
+                        The files are in the <code>scripts</code> folder which should be located in the
+                        <code>...\Steam\steamapps\common\Don't Starve Together\data\databundles\</code>.
+                    </p>
+                    <figure>
+                        <img src="files_location.webp" width="500" />
+                        <figcaption>Location of the speech files</figcaption>
+                    </figure>
+                    <ul>
+                        <li>
+                            <p>
+                                Either simply unzip the <code>scripts</code> folder and optionally copy all files called
+                                <code>speech_[character].lua</code> to a new folder.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Or browse the zipped scripts folder and copy all files called
+                                <code>speech_[character].lua</code> to a new folder.
+                            </p>
+                        </li>
+                    </ul>
+                    <figure>
+                        <img src="search_files.webp" width="500" />
+                        <figcaption>Selecting the files before copying</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="copied_files.webp" width="500" />
+                        <figcaption>New folder with all files copied</figcaption>
+                    </figure>
+                    <p>
+                        If you copied the speech files to a new folder or unzipped the <code>scripts</code> folder,
+                        you must do that again when a update for DST has released, otherwise the speech files might be
+                        outdated!
+                    </p>
+                </li>
+                <li>
+                    <p>Click the browse button and select all .lua speech files.</p>
+                </li>
+                <li>
+                    <p>
+                        Enter a quote identifier and click the search button. Then you can click the clipboard button
+                        (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-clipboard" viewBox="0 0 16 16">
+                            <path
+                                d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z" />
+                            <path
+                                d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z" />
+                        </svg>) to copy the quotes template and insert it in the wiki's source editor.
+                    </p>
+
+                    <p>
+                        The quote identifier is the name of all the variables required to find a quote, separated by a
+                        dot.
+
+                        In the example below, if you wanted to get the quotes for examining/describing the multiplayer
+                        portal, you'd have to enter <code>describe.multiplayer_portal</code>.
+                    </p>
+                    <pre>
+DESCRIBE =
+{
+    MULTIPLAYER_PORTAL = "Too bad it can't get us home.",
+    MULTIPLAYER_PORTAL_MOONROCK = "This one looks way fancier... but still can't get us home.",
+    MOONROCKIDOL = "Usually these kind of things are locked in an ancient temple guarded by a monster.",
+    CONSTRUCTION_PLANS = "I'm good at following instructions! I have a badge for it!",
+
+    ANTLION =
+    {
+        GENERIC = "Hi!",
+        VERYHAPPY = "We're becoming pals already.",
+        UNHAPPY = "It's hard to read her expression...",
+    },
+...
+</pre>
+                </li>
+            </ol>
+        </section>
     </div>
 
 </body>
