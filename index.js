@@ -2,11 +2,81 @@
 /* global fengari */
 
 // Wes doesn't talk
-const NUMBER_OF_TALKING_DST_CHARACTERS = 17;
+// the key is the name in the game files
+const KNOWN_CHARACTER_NAMES = {
+    walter: {
+        quotesTemplateName: "walter",
+        displayName: "Walter",
+    },
+    wanda: {
+        quotesTemplateName: "wanda",
+        displayName: "Wanda",
+    },
+    warly: {
+        quotesTemplateName: "warly",
+        displayName: "Warly",
+    },
+    wathgrithr: {
+        quotesTemplateName: "wigfrid",
+        displayName: "Wigfrid",
+    },
+    waxwell: {
+        quotesTemplateName: "maxwell",
+        displayName: "Maxwell",
+    },
+    webber: {
+        quotesTemplateName: "webber",
+        displayName: "Webber",
+    },
+    wendy: {
+        quotesTemplateName: "wendy",
+        displayName: "Wendy",
+    },
+    wickerbottom: {
+        quotesTemplateName: "wickerbottom",
+        displayName: "Wickerbottom",
+    },
+    willow: {
+        quotesTemplateName: "willow",
+        displayName: "Willow",
+    },
+    wilson: {
+        quotesTemplateName: "wilson",
+        displayName: "Wilson",
+    },
+    winona: {
+        quotesTemplateName: "winona",
+        displayName: "Winona",
+    },
+    wolfgang: {
+        quotesTemplateName: "wolfgang",
+        displayName: "Wolfgang",
+    },
+    woodie: {
+        quotesTemplateName: "woodie",
+        displayName: "Woodie",
+    },
+    wormwood: {
+        quotesTemplateName: "wormwood",
+        displayName: "Wormwood",
+    },
+    wortox: {
+        quotesTemplateName: "wortox",
+        displayName: "Wortox",
+    },
+    wurt: {
+        quotesTemplateName: "wurt",
+        displayName: "Wurt",
+    },
+    wx78: {
+        quotesTemplateName: "wx78",
+        displayName: "WX-78",
+    },
+};
+const NUMBER_OF_TALKING_DST_CHARACTERS = Object.keys(KNOWN_CHARACTER_NAMES).length;
 /**
  * @type {Array.<Object>}
  */
-
 let fileData = {};
 let characterNames = {};
 
@@ -278,7 +348,7 @@ async function handleFilesChanged(e) {
     }
 
     const unknownCharacterNames = handleUnknownCharacters(fileData);
-    characterNames = structuredClone(knownCharacterNames);
+    characterNames = structuredClone(KNOWN_CHARACTER_NAMES);
     Object.assign(characterNames, unknownCharacterNames);
 }
 
@@ -291,7 +361,7 @@ function handleUnknownCharacters(fileData) {
     const unknownCharacterNames = {};
     fileData.forEach((fileDatum) => {
         const name = fileDatum.name;
-        if (!Object.prototype.hasOwnProperty.call(knownCharacterNames, name)) {
+        if (!Object.prototype.hasOwnProperty.call(KNOWN_CHARACTER_NAMES, name)) {
             logger.info(`Found unknown character ${name}.`);
             unknownCharacterNames[name] = {
                 quotesTemplateName: name,
@@ -302,78 +372,8 @@ function handleUnknownCharacters(fileData) {
     return unknownCharacterNames;
 }
 
-// the key is the name in the game files
-const knownCharacterNames = {
-    walter: {
-        quotesTemplateName: "walter",
-        displayName: "Walter",
-    },
-    wanda: {
-        quotesTemplateName: "wanda",
-        displayName: "Wanda",
-    },
-    warly: {
-        quotesTemplateName: "warly",
-        displayName: "Warly",
-    },
-    wathgrithr: {
-        quotesTemplateName: "wigfrid",
-        displayName: "Wigfrid",
-    },
-    waxwell: {
-        quotesTemplateName: "maxwell",
-        displayName: "Maxwell",
-    },
-    webber: {
-        quotesTemplateName: "webber",
-        displayName: "Webber",
-    },
-    wendy: {
-        quotesTemplateName: "wendy",
-        displayName: "Wendy",
-    },
-    wickerbottom: {
-        quotesTemplateName: "wickerbottom",
-        displayName: "Wickerbottom",
-    },
-    willow: {
-        quotesTemplateName: "willow",
-        displayName: "Willow",
-    },
-    wilson: {
-        quotesTemplateName: "wilson",
-        displayName: "Wilson",
-    },
-    winona: {
-        quotesTemplateName: "winona",
-        displayName: "Winona",
-    },
-    wolfgang: {
-        quotesTemplateName: "wolfgang",
-        displayName: "Wolfgang",
-    },
-    woodie: {
-        quotesTemplateName: "woodie",
-        displayName: "Woodie",
-    },
-    wormwood: {
-        quotesTemplateName: "wormwood",
-        displayName: "Wormwood",
-    },
-    wortox: {
-        quotesTemplateName: "wortox",
-        displayName: "Wortox",
-    },
-    wurt: {
-        quotesTemplateName: "wurt",
-        displayName: "Wurt",
-    },
-    wx78: {
-        quotesTemplateName: "wx78",
-        displayName: "WX-78",
-    },
-};
-
+// TODO: put a space before and after the template's =
+// TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
 // TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
 // TODO: raise error when a quote identifier is too short and a whole table would be returned?
 // TODO: make a button at logs "show debug info"
