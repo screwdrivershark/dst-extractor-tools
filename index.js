@@ -160,6 +160,7 @@ function handleSearch(e) {
         return;
     }
 
+    logger.info(`Searching quotes for identifier "${searchText}".`);
     const quotesData = getQuotes(quoteIds);
     const postProcessed = postProcess(quotesData);
     const sorted = sortQuotes(postProcessed);
@@ -327,7 +328,7 @@ function searchQuote(data, quoteIds) {
     if (typeof currentData === "function") {
         // e.g. if instead of a single string it is two strings
         // like with describe.abigail.level1
-        throw new Error("No quote was found after following the identifiers!");
+        throw new Error("No quote was found after following the identifier!");
     }
     return currentData;
 }
@@ -417,6 +418,3 @@ function handleUnknownCharacters(fileData) {
     });
     return unknownCharacterNames;
 }
-
-// TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
-// TODO: make a button at logs "show debug info"
