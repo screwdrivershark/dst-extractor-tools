@@ -284,6 +284,7 @@ function createTemplate(quotesData) {
 }
 
 /**
+ * get quotes for every character
  * @param {Array.<String>} quoteIds
  * @returns {Array.<Object>}
  */
@@ -322,6 +323,12 @@ function searchQuote(data, quoteIds) {
         }
         currentData = nextData;
     });
+
+    if (typeof currentData === "function") {
+        // e.g. if instead of a single string it is two strings
+        // like with describe.abigail.level1
+        throw new Error("No quote was found after following the identifiers!");
+    }
     return currentData;
 }
 
@@ -413,6 +420,5 @@ function handleUnknownCharacters(fileData) {
 
 // TODO: put a space before and after the template's =
 // TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
-// TODO: do I need to handle case where a quote ID has multiple strings? e.g. (walter's) ANNOUNCE_ROYALTY?
 // TODO: raise error when a quote identifier is too short and a whole table would be returned?
 // TODO: make a button at logs "show debug info"
