@@ -162,7 +162,8 @@ function handleSearch(e) {
 
     const quotesData = getQuotes(quoteIds);
     const postProcessed = postProcess(quotesData);
-    createTemplate(postProcessed);
+    const sorted = sortQuotes(postProcessed);
+    createTemplate(sorted);
 }
 
 /**
@@ -225,6 +226,44 @@ function chooseCharacter(quotesData) {
         chosenDatum = quotesData[0];
     }
     return characterNames[chosenDatum.name].quotesTemplateName;
+}
+
+/**
+ * @param {Array.<Object>} quotesData
+ * @returns {Array.<Object>} sorted by how the characters appear in the game unknown characters appended
+ */
+function sortQuotes(quotesData) {
+    const NAME_DISPLAY_ORDER = [
+        "wilson",
+        "willow",
+        "wolfgang",
+        "wendy",
+        "wx78",
+        "wickerbottom",
+        "woodie",
+        "waxwell",
+        "wathgrithr",
+        "webber",
+        "winona",
+        "warly",
+        "wortox",
+        "wormwood",
+        "wurt",
+        "walter",
+        "wanda",
+    ];
+    const sortedQuotesData = [];
+    NAME_DISPLAY_ORDER.forEach((name) => {
+        const i = quotesData.findIndex((element) => element.name === name);
+        if (i > -1) {
+            const quoteDatum = quotesData[i];
+            sortedQuotesData.push(quoteDatum);
+            quotesData.splice(i, 1);
+        }
+    });
+    // append unknown characters at the end
+    const fullQuotesData = sortedQuotesData.concat(quotesData);
+    return fullQuotesData;
 }
 
 /**
