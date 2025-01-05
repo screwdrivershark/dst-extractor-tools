@@ -104,7 +104,7 @@ class Logger {
     }
 
     debug(message) {
-        this.logMessage("debug", message);
+        console.debug(message);
     }
 
     info(message) {
@@ -418,6 +418,5 @@ function handleUnknownCharacters(fileData) {
     return unknownCharacterNames;
 }
 
-// TODO: debug to console
 // TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
 // TODO: make a button at logs "show debug info"
