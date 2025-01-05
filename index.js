@@ -275,9 +275,9 @@ function createTemplate(quotesData) {
         return;
     }
     logger.info(`Creating template for ${quotesData.length} character(s).`);
-    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName}=${quoteDatum.quote}`, "");
+    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName} = ${quoteDatum.quote}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
-    const template = `{{Quotes${charactersTemplate}\n|choose=${chosenCharacter}\n}}`;
+    const template = `{{Quotes${charactersTemplate}\n|choose = ${chosenCharacter}\n}}`;
 
     const templateElement = document.querySelector("#template");
     templateElement.value = template;
@@ -418,6 +418,6 @@ function handleUnknownCharacters(fileData) {
     return unknownCharacterNames;
 }
 
-// TODO: put a space before and after the template's =
+// TODO: debug to console
 // TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
 // TODO: make a button at logs "show debug info"
