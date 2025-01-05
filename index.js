@@ -420,5 +420,4 @@ function handleUnknownCharacters(fileData) {
 
 // TODO: put a space before and after the template's =
 // TODO: show which item was loaded quotes for, e.g. "creating template for describe.abc"
-// TODO: raise error when a quote identifier is too short and a whole table would be returned?
 // TODO: make a button at logs "show debug info"
