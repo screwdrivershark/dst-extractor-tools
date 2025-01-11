@@ -203,8 +203,8 @@ function postProcessWigfrid(quote) {
             return ret
         end
     `;
-    const processed = fengari.load(luaFunction)().invoke({ value: quote }, {}); // no clue what exactly the arguments for invoke() must be
-    return processed[0];
+    const processed = fengari.load(luaFunction)().apply({ value: quote }, {}); // no clue what exactly the arguments for apply() must be
+    return processed;
 }
 
 /**
