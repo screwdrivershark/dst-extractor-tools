@@ -139,6 +139,17 @@ copyElement.addEventListener("click", () => {
     navigator.clipboard.writeText(text);
 });
 
+function quotesAreSameStructure(quotesData) {
+    const areSameType = quotesData.every((element) => typeof element.data === typeof quotesData[0].data);
+    const areSameNumberOfEntries = (() => {
+        if (typeof quotesData[0].data === "object") {
+            return quotesData.every((element) => JSON.stringify(Object.keys(element.data)) === JSON.stringify(Object.keys(quotesData[0].data)));
+        }
+        return true;
+    })();
+
+    return areSameType && areSameNumberOfEntries;
+}
 
 /**
  * @param {SubmitEvent} e
@@ -162,9 +173,28 @@ function handleSearch(e) {
 
     logger.info(`Searching quotes for identifier "${searchText}".`);
     const quotesData = getQuotes(quoteIds);
-    const postProcessed = postProcess(quotesData);
-    const sorted = sortQuotes(postProcessed);
-    createTemplate(sorted);
+    if (quotesData.length === 0) {
+        logger.info("Not creating template because no quotes were found!");
+        return;
+    }
+    if (!quotesAreSameStructure(quotesData)) {
+        logger.error("Something is wrong with the data?!");
+        logger.debug("Not all quotes data is of the same type or same number of object keys for some reason.");
+        console.debug(quotesData);
+        return;
+    }
+
+    if (typeof quotesData[0].data === "object") {
+        const postProcessed = postProcessMany(quotesData);
+        const sorted = sortQuotes(postProcessed);
+        const template = getTemplateMany(sorted);
+        templateElement.value = template;
+    } else {
+        const postProcessed = postProcess(quotesData);
+        const sorted = sortQuotes(postProcessed);
+        const template = getTemplate(sorted);
+        templateElement.value = template;
+    }
 }
 
 /**
@@ -174,7 +204,21 @@ function handleSearch(e) {
 function postProcess(quotesData) {
     const wigfridQuoteDatum = findQuoteDatumByName(quotesData, "wathgrithr");
     if (wigfridQuoteDatum !== undefined) {
-        wigfridQuoteDatum.quote = postProcessWigfrid(wigfridQuoteDatum.quote);
+        wigfridQuoteDatum.data = postProcessWigfrid(wigfridQuoteDatum.data);
+    }
+    return quotesData;
+}
+
+/**
+ * @param {Array.<Object>} quotesData
+ * @returns {Array.<Object>}
+ */
+function postProcessMany(quotesData) {
+    const wigfridQuoteDatum = findQuoteDatumByName(quotesData, "wathgrithr");
+    if (wigfridQuoteDatum !== undefined) {
+        for (const [key, value] of Object.entries(wigfridQuoteDatum.data)) {
+            wigfridQuoteDatum.data[key] = postProcessWigfrid(value);
+        }
     }
     return quotesData;
 }
@@ -231,7 +275,7 @@ function chooseCharacter(quotesData) {
 
 /**
  * @param {Array.<Object>} quotesData
- * @returns {Array.<Object>} sorted by how the characters appear in the game unknown characters appended
+ * @returns {Array.<Object>} sorted by how the characters appear in the game with unknown characters appended
  */
 function sortQuotes(quotesData) {
     const NAME_DISPLAY_ORDER = [
@@ -269,19 +313,44 @@ function sortQuotes(quotesData) {
 
 /**
  * @param {Array.<Object>} quotesData
+ * @param {Boolean} quiet
+ * @returns {String}
  */
-function createTemplate(quotesData) {
-    if (quotesData.length === 0) {
-        logger.info("Not creating template because no quotes were found!");
-        return;
+function getTemplate(quotesData, quiet) {
+    if (!quiet) {
+        logger.info(`Creating template for ${quotesData.length} character(s).`);
     }
-    logger.info(`Creating template for ${quotesData.length} character(s).`);
-    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName} = ${quoteDatum.quote}`, "");
+    const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName} = ${quoteDatum.data}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
-    const template = `{{Quotes${charactersTemplate}\n|choose = ${chosenCharacter}\n}}`;
+    const template = `{{Quotes${charactersTemplate}\n|choose = ${chosenCharacter}\n}}\n`;
+    return template;
+}
 
-    const templateElement = document.querySelector("#template");
-    templateElement.value = template;
+/**
+ *
+ * @param {String} key
+ */
+function formatTabName(key) {
+    key = key.replace("_", " ").toLowerCase();
+    return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+/**
+ * @param {Array.<Object>} quotesData the .data has quotes for multiple keys
+ */
+function getTemplateMany(quotesData) {
+    const keys = Object.keys(quotesData[0].data);
+    const keyNames = keys.map((element) => formatTabName(element));
+    logger.info(`Creating templates for ${quotesData.length} character(s) and tabs named ${keyNames.join(", ")}.`);
+    let template = "<tabber>\n";
+    keys.forEach((key) => {
+        template += `|-|${formatTabName(key)}=\n`;
+        const quotesDataForOneKey = quotesData.map((element) => { return { name: element.name, data: element.data[key] }; });
+        const templateForOneKey = getTemplate(quotesDataForOneKey, true);
+        template += templateForOneKey;
+    });
+    template += "</tabber>\n";
+    return template;
 }
 
 /**
@@ -293,44 +362,61 @@ function getQuotes(quoteIds) {
     const quotes = [];
     fileData.forEach((fileDatum) => {
         try {
-            const quote = searchQuote(fileDatum.data, quoteIds);
+            const data = searchQuote(fileDatum.data, quoteIds);
             quotes.push({
                 name: fileDatum.name,
-                quote: quote,
+                data: data,
             });
         } catch (error) {
             logger.debug("Error trying to get quote data (from Lua): " + error.message);
-            logger.warn(`Failed to find the quote for ${characterNames[fileDatum.name].displayName}!`);
+            logger.warn(`Failed to find the quote(s) for ${characterNames[fileDatum.name].displayName}!`);
         }
     });
     return quotes;
 }
 
-/**
- * search through the speech file data as a lua object and try to find the quote corresponding to quoteIds
- * @param {String} data
- * @param {Array.<String>} quoteIds
- */
-function searchQuote(data, quoteIds) {
-    let currentData = fengari.load(data)(); // the () at the end is important!
-    quoteIds.forEach((id, index) => {
-        const idsTillNow = quoteIds.slice(0, index).join(".");
-        if (typeof currentData === "string") {
-            throw new Error(`A quote was found already but then an attempt to get the quote's child (impossible) failed after ${idsTillNow}`);
-        }
-        const nextData = currentData.get(id);
-        if (nextData === undefined) {
-            throw new Error(`No data was found when trying the ID ${id} after ${idsTillNow}`);
-        }
-        currentData = nextData;
-    });
+function getFullScript(speechFileCode) {
+    // from https://gist.github.com/daurnimator/5a7fa933e96e14333962093322e0ff95/
+    // as I didn't get js.createproxy(x, "object") to work
+    const convertToObjectCode = `
+        local js = require "js"
 
-    if (typeof currentData === "function") {
-        // e.g. if instead of a single string it is two strings
-        // like with describe.abigail.level1
-        throw new Error("No quote was found after following the identifier!");
+        local function Object(t)
+            if type(t) ~= 'table' then return t end
+            local o = js.new(js.global.Object)
+            for k, v in pairs(t) do
+                --assert(type(k) == "string" or js.typeof(k) == "symbol", "JavaScript object only has string and symbol keys")
+                o[k] = Object(v)
+            end
+            return o
+        end
+
+        return Object(
+    `;
+    return convertToObjectCode + speechFileCode.slice(speechFileCode.search("return") + "return".length) + ")";
+}
+
+/**
+ * search through the speech file data as a lua object and try to find the quote(s) corresponding to quoteIds
+ * @param {String} speechCode
+ * @param {Array.<String>} quoteIds
+ * @returns {String|Object}
+ */
+function searchQuote(speechCode, quoteIds) {
+    const fullScript = getFullScript(speechCode);
+    const data = fengari.load(fullScript)();
+    const quoteData = quoteIds.reduce((acc, key) => acc?.[key], data);
+
+    if (quoteData === undefined) {
+        throw new Error("No data was found!");
     }
-    return currentData;
+    // if it is an array of two or more strings (but as object)
+    // like with describe.abigail.level1
+    if (typeof quoteData === "object" && quoteData[1]) {
+        throw new Error("Unsupported data, multiple quotes were found.");
+    }
+
+    return quoteData;
 }
 
 /**
