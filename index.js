@@ -374,9 +374,15 @@ function getQuotes(quoteIds) {
     return quotes;
 }
 
+/**
+ * @param {String} speechFileCode
+ */
 function getFullScript(speechFileCode) {
     // from https://gist.github.com/daurnimator/5a7fa933e96e14333962093322e0ff95/
-    // as I didn't get js.createproxy(x, "object") to work
+    // as I didn't get js.createproxy(x, "object") to work.
+    // Wrap the entire file in a function instead of searching for its top-level
+    // `return` so the word "return" in comments/strings can't break the slice and
+    // local helpers defined before the return stay in scope.
     const convertToObjectCode = `
         local js = require "js"
 
@@ -390,9 +396,12 @@ function getFullScript(speechFileCode) {
             return o
         end
 
-        return Object(
+        local speech = (function ()
     `;
-    return convertToObjectCode + speechFileCode.slice(speechFileCode.search("return") + "return".length) + ")";
+    return convertToObjectCode + speechFileCode + `
+        end)()
+        return Object(speech)
+    `;
 }
 
 /**
