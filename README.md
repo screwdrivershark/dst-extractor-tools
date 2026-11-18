@@ -23,6 +23,7 @@ Fengari passes JS `this` as the **first Lua argument**, followed by the rest of 
 | `f.invoke(a, [b])`   | `function(a, b)`, returns all Lua return values as an array |
 
 So a Lua `function(s)` is called as `f.call(s)`, not `f(s)`.
+
 ### Return values
 
 | Lua value returned      | JS value returned                                  |
