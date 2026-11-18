@@ -368,7 +368,7 @@ function getQuotes(quoteIds) {
                 data: data,
             });
         } catch (error) {
-            logger.debug("Error trying to get quote data (from Lua): " + error.message);
+            logger.debug("Error trying to get quote data (from Lua): " + String(error));
             logger.warn(`Failed to find the quote(s) for ${characterNames[fileDatum.name].displayName}!`);
         }
     });
