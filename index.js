@@ -367,8 +367,16 @@ function getQuotes(quoteIds) {
                 data: data,
             });
         } catch (error) {
-            logger.debug("Error trying to get quote data (from Lua): " + String(error));
-            logger.warn(`Failed to find the quote(s) for ${characterNames[fileDatum.name].displayName}!`);
+            const displayName = characterNames[fileDatum.name].displayName;
+            if (error instanceof SyntaxError) {
+                logger.error(`Failed to parse the speech file for ${displayName}: ${error.message}`);
+            } else if (error instanceof Error) {
+                logger.debug(`Could not get quote data for ${displayName}: ${error.message}`);
+                logger.warn(`Failed to find the quote(s) for ${displayName}!`);
+            } else {
+                // Fengari throws Lua runtime errors as plain strings, not Error objects.
+                logger.error(`Failed to evaluate the speech file for ${displayName}: ${String(error)}`);
+            }
         }
     });
     return quotes;
