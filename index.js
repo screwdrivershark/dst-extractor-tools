@@ -230,12 +230,11 @@ function postProcessMany(quotesData) {
 function postProcessWigfrid(quote) {
     // "Umlautify" from the game code
     const luaFunction = `
-        return function (string)
-            local string = string.value
+        return function (quote)
             local ret = ""
             local last = false
-            for i = 1, #string do
-                local c = string:sub(i,i)
+            for i = 1, #quote do
+                local c = quote:sub(i,i)
                 if not last and (c == "o" or c == "O") then
                     ret = ret .. ((c == "o" and "ö") or (c == "O" and "Ö") or c)
                     last = true
@@ -247,7 +246,7 @@ function postProcessWigfrid(quote) {
             return ret
         end
     `;
-    const processed = fengari.load(luaFunction)().apply({ value: quote }, {}); // no clue what exactly the arguments for apply() must be
+    const processed = fengari.load(luaFunction)().call(quote);
     return processed;
 }
 
