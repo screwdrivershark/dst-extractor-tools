@@ -1,3 +1,7 @@
+# Don't Starve Quotes Extractor
+
+This tool takes the lua files from the Don't Starve games and extracts pieces of quotes from it and formats it for the <https://dontstarve.wiki.gg/wiki/Template:Quotes> MediaWiki template.
+
 ## todo
 
 * handle wigfrid always using Ö, even two in a row, in DS
