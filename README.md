@@ -1,6 +1,11 @@
+# Don't Starve Quotes Extractor
+
+This tool takes the lua files from the Don't Starve games and extracts pieces of quotes from it and formats it for the <https://dontstarve.wiki.gg/wiki/Template:Quotes> MediaWiki template.
+
+[speech_wilson.lua](speech_wilson.lua) is a short sample showing the structure of a speech file.
+
 ## todo
 
-* handle wigfrid always using Ö, even two in a row, in DS
 * does it properly handle that warly is the only character that doesn't have quotes for QUAGMIRE_PIGEON? should it only say "no quotes found" once or for each key?
 * how does it handle line breaks in a quote? e.g. woodie for gold nugget. convert to <br>?
 

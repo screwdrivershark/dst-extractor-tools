@@ -1,17 +1,17 @@
 "use strict";
 /* global fengari */
 
-// Wes doesn't talk
+// Wes doesn't talk and has no speech file.
+// files of these characters are not used for quotes.
+// Wilbur is still used for detecting the game.
+const IGNORED_CHARACTERS = {
+    wilbur: "Ignoring Wilbur, use https://dontstarve.wiki.gg/wiki/Template:BananaQuotes for his quotes.",
+    warbucks: "Ignoring Warbucks, he was removed from the game.",
+};
+const isIgnoredCharacter = (name) => Object.prototype.hasOwnProperty.call(IGNORED_CHARACTERS, name);
 // the key is the name in the game files
-const KNOWN_CHARACTER_NAMES = {
-    walter: {
-        quotesTemplateName: "walter",
-        displayName: "Walter",
-    },
-    wanda: {
-        quotesTemplateName: "wanda",
-        displayName: "Wanda",
-    },
+// the key is the file name
+const SHARED_CHARACTER_NAMES = {
     warly: {
         quotesTemplateName: "warly",
         displayName: "Warly",
@@ -19,10 +19,6 @@ const KNOWN_CHARACTER_NAMES = {
     wathgrithr: {
         quotesTemplateName: "wigfrid",
         displayName: "Wigfrid",
-    },
-    waxwell: {
-        quotesTemplateName: "maxwell",
-        displayName: "Maxwell",
     },
     webber: {
         quotesTemplateName: "webber",
@@ -44,10 +40,6 @@ const KNOWN_CHARACTER_NAMES = {
         quotesTemplateName: "wilson",
         displayName: "Wilson",
     },
-    winona: {
-        quotesTemplateName: "winona",
-        displayName: "Winona",
-    },
     wolfgang: {
         quotesTemplateName: "wolfgang",
         displayName: "Wolfgang",
@@ -60,6 +52,59 @@ const KNOWN_CHARACTER_NAMES = {
         quotesTemplateName: "wormwood",
         displayName: "Wormwood",
     },
+    wx78: {
+        quotesTemplateName: "wx78",
+        displayName: "WX-78",
+    },
+};
+// DS and DST spell Maxwell's file name differently
+const DS_EXCLUSIVE_CHARACTER_NAMES = {
+    wilbur: {
+        quotesTemplateName: "wilbur",
+        displayName: "Wilbur",
+    },
+    maxwell: {
+        quotesTemplateName: "maxwell",
+        displayName: "Maxwell",
+    },
+    wagstaff: {
+        quotesTemplateName: "wagstaff",
+        displayName: "Wagstaff",
+    },
+    walani: {
+        quotesTemplateName: "walani",
+        displayName: "Walani",
+    },
+    wheeler: {
+        quotesTemplateName: "wheeler",
+        displayName: "Wheeler",
+    },
+    wilba: {
+        quotesTemplateName: "wilba",
+        displayName: "Wilba",
+    },
+    woodlegs: {
+        quotesTemplateName: "woodlegs",
+        displayName: "Woodlegs",
+    },
+};
+const DST_EXCLUSIVE_CHARACTER_NAMES = {
+    walter: {
+        quotesTemplateName: "walter",
+        displayName: "Walter",
+    },
+    wanda: {
+        quotesTemplateName: "wanda",
+        displayName: "Wanda",
+    },
+    waxwell: {
+        quotesTemplateName: "maxwell",
+        displayName: "Maxwell",
+    },
+    winona: {
+        quotesTemplateName: "winona",
+        displayName: "Winona",
+    },
     wortox: {
         quotesTemplateName: "wortox",
         displayName: "Wortox",
@@ -68,17 +113,27 @@ const KNOWN_CHARACTER_NAMES = {
         quotesTemplateName: "wurt",
         displayName: "Wurt",
     },
-    wx78: {
-        quotesTemplateName: "wx78",
-        displayName: "WX-78",
+};
+
+const GAMES = {
+    ds: {
+        displayName: "DS",
+        knownCharacterNames: { ...SHARED_CHARACTER_NAMES, ...DS_EXCLUSIVE_CHARACTER_NAMES },
+        umlautifyWigfrid: umlautifyEveryO,
+    },
+    dst: {
+        displayName: "DST",
+        knownCharacterNames: { ...SHARED_CHARACTER_NAMES, ...DST_EXCLUSIVE_CHARACTER_NAMES },
+        umlautifyWigfrid: umlautifyNonConsecutiveO,
     },
 };
-const NUMBER_OF_TALKING_DST_CHARACTERS = Object.keys(KNOWN_CHARACTER_NAMES).length;
+
 /**
  * @type {Array.<Object>}
  */
 let fileData = {};
 let characterNames = {};
+let game = GAMES.dst;
 
 class Logger {
     /**
@@ -204,7 +259,7 @@ function handleSearch(e) {
 function postProcess(quotesData) {
     const wigfridQuoteDatum = findQuoteDatumByName(quotesData, "wathgrithr");
     if (wigfridQuoteDatum !== undefined) {
-        wigfridQuoteDatum.data = postProcessWigfrid(wigfridQuoteDatum.data);
+        wigfridQuoteDatum.data = game.umlautifyWigfrid(wigfridQuoteDatum.data);
     }
     return quotesData;
 }
@@ -217,7 +272,7 @@ function postProcessMany(quotesData) {
     const wigfridQuoteDatum = findQuoteDatumByName(quotesData, "wathgrithr");
     if (wigfridQuoteDatum !== undefined) {
         for (const [key, value] of Object.entries(wigfridQuoteDatum.data)) {
-            wigfridQuoteDatum.data[key] = postProcessWigfrid(value);
+            wigfridQuoteDatum.data[key] = game.umlautifyWigfrid(value);
         }
     }
     return quotesData;
@@ -227,8 +282,8 @@ function postProcessMany(quotesData) {
  * @param {String} quote
  * @returns {String}
  */
-function postProcessWigfrid(quote) {
-    // "Umlautify" from the game code
+function umlautifyNonConsecutiveO(quote) {
+    // "Umlautify" from the DST game code
     const luaFunction = `
         return function (quote)
             local ret = ""
@@ -248,6 +303,14 @@ function postProcessWigfrid(quote) {
     `;
     const processed = fengari.load(luaFunction)().call(quote);
     return processed;
+}
+
+/**
+ * @param {String} quote
+ * @returns {String}
+ */
+function umlautifyEveryO(quote) {
+    return quote.replaceAll("o", "ö").replaceAll("O", "Ö");
 }
 
 /**
@@ -274,9 +337,10 @@ function chooseCharacter(quotesData) {
 
 /**
  * @param {Array.<Object>} quotesData
- * @returns {Array.<Object>} sorted by how the characters appear in the game with unknown characters appended
+ * @returns {Array.<Object>} sorted like in the wiki template with unknown characters appended
  */
 function sortQuotes(quotesData) {
+    // same order as the parameters in https://dontstarve.wiki.gg/wiki/Template:Quotes
     const NAME_DISPLAY_ORDER = [
         "wilson",
         "willow",
@@ -286,12 +350,18 @@ function sortQuotes(quotesData) {
         "wickerbottom",
         "woodie",
         "waxwell",
+        "maxwell",
+        "wagstaff",
         "wathgrithr",
         "webber",
-        "winona",
+        "walani",
         "warly",
-        "wortox",
+        "woodlegs",
+        "wilba",
         "wormwood",
+        "wheeler",
+        "winona",
+        "wortox",
         "wurt",
         "walter",
         "wanda",
@@ -317,7 +387,7 @@ function sortQuotes(quotesData) {
  */
 function getTemplate(quotesData, quiet) {
     if (!quiet) {
-        logger.info(`Creating template for ${quotesData.length} character(s).`);
+        logger.info(`Creating template for ${pluralize(quotesData.length, "character")}.`);
     }
     const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName} = ${quoteDatum.data}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
@@ -340,7 +410,7 @@ function formatTabName(key) {
 function getTemplateMany(quotesData) {
     const keys = Object.keys(quotesData[0].data);
     const keyNames = keys.map((element) => formatTabName(element));
-    logger.info(`Creating templates for ${quotesData.length} character(s) and tabs named ${keyNames.join(", ")}.`);
+    logger.info(`Creating templates for ${pluralize(quotesData.length, "character")} and tabs named ${keyNames.join(", ")}.`);
     let template = "<tabber>\n";
     keys.forEach((key) => {
         template += `|-|${formatTabName(key)}=\n`;
@@ -448,6 +518,15 @@ function getQuoteIds(input) {
 
 
 /**
+ * @param {Number} count
+ * @param {String} noun
+ * @returns {String} e.g. "1 file" or "3 files"
+ */
+function pluralize(count, noun) {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+/**
  * @param {Object} object
  * @returns {Boolean}
  */
@@ -489,16 +568,51 @@ async function handleFilesChanged(e) {
         return;
     }
 
-    fileData = await readFiles(files);
-    const numberOfReadFiles = Object.keys(fileData).length;
-    logger.info(`Read ${numberOfReadFiles} file(s).`);
-    if (numberOfReadFiles < NUMBER_OF_TALKING_DST_CHARACTERS) {
-        logger.warn(`Did you select all speech files? DST has ${NUMBER_OF_TALKING_DST_CHARACTERS} speaking characters.`);
+    const readResults = await readFiles(files);
+    const successfullyRead = readResults.filter((fileDatum) => fileDatum !== undefined);
+    logger.info(`Read ${pluralize(successfullyRead.length, "file")}.`);
+    successfullyRead
+        .filter((fileDatum) => isIgnoredCharacter(fileDatum.name))
+        .forEach((fileDatum) => logger.debug(IGNORED_CHARACTERS[fileDatum.name]));
+    fileData = successfullyRead.filter((fileDatum) => !isIgnoredCharacter(fileDatum.name));
+    const numberOfReadFiles = fileData.length;
+
+    const characterNamesInFiles = successfullyRead.map((fileDatum) => fileDatum.name);
+    game = detectGame(characterNamesInFiles);
+    const numberOfTalkingCharacters = Object.keys(game.knownCharacterNames)
+        .filter((name) => !isIgnoredCharacter(name)).length;
+    if (numberOfReadFiles < numberOfTalkingCharacters) {
+        logger.warn(`Did you select all speech files? ${game.displayName} has ${numberOfTalkingCharacters} speaking characters.`);
     }
 
     const unknownCharacterNames = handleUnknownCharacters(fileData);
-    characterNames = structuredClone(KNOWN_CHARACTER_NAMES);
+    characterNames = structuredClone(game.knownCharacterNames);
     Object.assign(characterNames, unknownCharacterNames);
+}
+
+/**
+ * @param {Array.<String>} names character names as used in the game files
+ * @returns {Object} an entry of GAMES
+ */
+function detectGame(names) {
+    const hasAnyOf = (characters) => names.some((name) => Object.prototype.hasOwnProperty.call(characters, name));
+    const hasDsExclusive = hasAnyOf(DS_EXCLUSIVE_CHARACTER_NAMES);
+    const hasDstExclusive = hasAnyOf(DST_EXCLUSIVE_CHARACTER_NAMES);
+
+    if (hasDsExclusive && hasDstExclusive) {
+        logger.warn("Found speech files exclusive to DS and exclusive to DST. Did you mix files from both games? Assuming DST.");
+        return GAMES.dst;
+    }
+    if (hasDsExclusive) {
+        logger.info("Detected DS speech files.");
+        return GAMES.ds;
+    }
+    if (hasDstExclusive) {
+        logger.info("Detected DST speech files.");
+        return GAMES.dst;
+    }
+    logger.warn("Could not detect whether the speech files are from DS or DST. Assuming DST.");
+    return GAMES.dst;
 }
 
 /**
@@ -510,8 +624,8 @@ function handleUnknownCharacters(fileData) {
     const unknownCharacterNames = {};
     fileData.forEach((fileDatum) => {
         const name = fileDatum.name;
-        if (!Object.prototype.hasOwnProperty.call(KNOWN_CHARACTER_NAMES, name)) {
-            logger.info(`Found unknown character ${name}.`);
+        if (!Object.prototype.hasOwnProperty.call(game.knownCharacterNames, name)) {
+            logger.info(`Found character ${name} unknown to ${game.displayName}.`);
             unknownCharacterNames[name] = {
                 quotesTemplateName: name,
                 displayName: name,
