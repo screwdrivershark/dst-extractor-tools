@@ -4,7 +4,6 @@ This tool takes the lua files from the Don't Starve games and extracts pieces of
 
 ## todo
 
-* handle wigfrid always using Ö, even two in a row, in DS
 * does it properly handle that warly is the only character that doesn't have quotes for QUAGMIRE_PIGEON? should it only say "no quotes found" once or for each key?
 * how does it handle line breaks in a quote? e.g. woodie for gold nugget. convert to <br>?
 

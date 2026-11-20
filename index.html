@@ -212,14 +212,19 @@ DESCRIBE =
             </ol>
             <h3 id="special-cases">Special cases</h3>
             <p>
-                If you want to get the quotes for singleplayer DS or for modded characters, just select a valid
-                <code>speech_[character].lua</code> file and it will use <code>[character]</code> as the parameter in
-                the quotes template for that character. This might not be the correct parameter name.
+                The tool detects whether the speech files are from singleplayer DS or from DST by looking for
+                characters exclusive to either game. If neither is found, it assumes DST.
+                Don't mix files from both games in one selection.
+            </p>
+            <p>
+                For modded characters, just select a valid <code>speech_[character].lua</code> file and it will use
+                <code>[character]</code> as the parameter in the quotes template for that character. This might not
+                be the correct parameter name.
             </p>
             <h2 id="why-use-heading">Why to use</h2>
             <ul>
                 <li>It is faster.</li>
-                <li>It takes care of Wigfrid's special spelling.</li>
+                <li>It takes care of Wigfrid's special spelling, which differs between DS and DST.</li>
             </ul>
             <h2 id="source">Source</h2>
             <p>
