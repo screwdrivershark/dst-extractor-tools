@@ -12,8 +12,8 @@ return {
 	{
         GLOMMERFLOWER = 
         {
-        	GENERIC = "The petals shimmer in the light.",
-        	DEAD = "The petals droop and shimmer in the light.",
+        	GENERIC = "test4",
+        	DEAD = "test5",
         },
     },
 }
