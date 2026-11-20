@@ -4,6 +4,7 @@ import stylisticJs from '@stylistic/eslint-plugin-js';
 
 
 export default [
+  { ignores: ["fengari-web.js"] },
   {
     files: ["**/*.js"],
     languageOptions: { sourceType: "script" },
