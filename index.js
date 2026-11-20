@@ -387,7 +387,7 @@ function sortQuotes(quotesData) {
  */
 function getTemplate(quotesData, quiet) {
     if (!quiet) {
-        logger.info(`Creating template for ${quotesData.length} character(s).`);
+        logger.info(`Creating template for ${pluralize(quotesData.length, "character")}.`);
     }
     const charactersTemplate = quotesData.reduce((acc, quoteDatum) => acc + `\n|${characterNames[quoteDatum.name].quotesTemplateName} = ${quoteDatum.data}`, "");
     const chosenCharacter = chooseCharacter(quotesData);
@@ -410,7 +410,7 @@ function formatTabName(key) {
 function getTemplateMany(quotesData) {
     const keys = Object.keys(quotesData[0].data);
     const keyNames = keys.map((element) => formatTabName(element));
-    logger.info(`Creating templates for ${quotesData.length} character(s) and tabs named ${keyNames.join(", ")}.`);
+    logger.info(`Creating templates for ${pluralize(quotesData.length, "character")} and tabs named ${keyNames.join(", ")}.`);
     let template = "<tabber>\n";
     keys.forEach((key) => {
         template += `|-|${formatTabName(key)}=\n`;
@@ -518,6 +518,15 @@ function getQuoteIds(input) {
 
 
 /**
+ * @param {Number} count
+ * @param {String} noun
+ * @returns {String} e.g. "1 file" or "3 files"
+ */
+function pluralize(count, noun) {
+    return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+/**
  * @param {Object} object
  * @returns {Boolean}
  */
@@ -561,10 +570,10 @@ async function handleFilesChanged(e) {
 
     const readResults = await readFiles(files);
     const successfullyRead = readResults.filter((fileDatum) => fileDatum !== undefined);
-    logger.info(`Read ${successfullyRead.length} file(s).`);
+    logger.info(`Read ${pluralize(successfullyRead.length, "file")}.`);
     successfullyRead
         .filter((fileDatum) => isIgnoredCharacter(fileDatum.name))
-        .forEach((fileDatum) => logger.info(IGNORED_CHARACTERS[fileDatum.name]));
+        .forEach((fileDatum) => logger.debug(IGNORED_CHARACTERS[fileDatum.name]));
     fileData = successfullyRead.filter((fileDatum) => !isIgnoredCharacter(fileDatum.name));
     const numberOfReadFiles = fileData.length;
 
